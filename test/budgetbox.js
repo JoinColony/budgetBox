@@ -1,4 +1,6 @@
-var BudgetBox = artifacts.require("./BudgetBox.sol");
+const BudgetBox = artifacts.require("./BudgetBox.sol");
+
+const K = 5;
 
 function createVote(winner, loser) {
     const [a, b, winbit] = (winner < loser) ? [winner, loser, 0] : [loser, winner, 1];
@@ -6,10 +8,24 @@ function createVote(winner, loser) {
     return (2 + winbit) << (pos * 2);
 }
 
+function sumMatrix(matrix) {
+  return matrix
+    .reduce((agg, row) => agg.concat(row), [])
+    .reduce((sum, el) => sum + el.toNumber(), 0);
+}
+
+function printMatrix(matrix) {
+  matrix.map(printRow);
+}
+
+function printRow(row) {
+  console.log(row.map(el => el.toNumber()));
+}
+
 contract('BudgetBox', function(accounts) {
   let budgetBox;
 
-  before(async () => {
+  beforeEach(async () => {
     budgetBox = await BudgetBox.new();
   })
 
@@ -28,13 +44,18 @@ contract('BudgetBox', function(accounts) {
     const bbox = await budgetBox.createBBox();
     assert.equal(bbox[0][1].toNumber(), 1);
     assert.equal(bbox[1][2].toNumber(), 1);
-
-    assert.equal(bbox[1][0].toNumber(), 0);
-    assert.equal(bbox[2][1].toNumber(), 0);
-
-    assert.equal(bbox[0][0].toNumber(), 0);
-    assert.equal(bbox[1][1].toNumber(), 0);
-    assert.equal(bbox[2][2].toNumber(), 0);
+    assert.equal(sumMatrix(bbox), 2);
   });
 
+  it("should run the power method", async () => {
+    await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
+
+    let bbox;
+    bbox = await budgetBox.createBBox();
+    bbox = await budgetBox.addDiagonal(bbox);
+
+    const v = await budgetBox.powerMethod(bbox, 5);
+    assert(v[0].toNumber() > v[1].toNumber());
+    assert(v[1].toNumber() > v[2].toNumber());
+  });
 });

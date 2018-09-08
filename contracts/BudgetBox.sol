@@ -20,7 +20,7 @@ pragma experimental "v0.5.0";
 
 
 contract BudgetBox {
-  uint256 constant K = 10;
+  uint256 constant K = 5;
   uint256[] voteArray;
 
   //////////
@@ -53,6 +53,42 @@ contract BudgetBox {
     }
 
     return bbox;
+  }
+
+  function addDiagonal(uint256[K][K] bbox) public pure returns(uint256[K][K]) {
+    uint i;
+    uint j;
+    for (i = 0; i < K; i++) {
+      for (j = 0; j < K; j++) {
+        if (i != j) bbox[i][i] += bbox[i][j];
+      }
+    }
+    return bbox;
+  }
+
+  function powerMethod(uint256[K][K] bbox, uint256 nIter) public pure returns (uint256[K]) {
+    uint256[K] memory v0;
+    uint256[K] memory vn;
+
+    uint i;
+    uint j;
+    uint k;
+
+    // Initialize v
+    for (k = 0; k < K; k++) v0[k] = 1;
+
+    // Run algorithm!
+    for (; nIter > 0; nIter--) {
+      for (i = 0; i < K; i++) {
+        vn[i] = 0;
+        for (j = 0; j < K; j++) {
+          vn[i] += bbox[i][j] * v0[j];
+        }
+      }
+      for (k = 0; k < K; k++) v0[k] = vn[k];
+    }
+
+    return v0;
   }
 
   //////////
