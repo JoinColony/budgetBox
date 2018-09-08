@@ -20,5 +20,14 @@ pragma experimental "v0.5.0";
 
 
 contract BudgetBox {
+  uint256 k;
+  bytes32[] voteArray;
 
+  function addVote(bytes32 vote) public {
+    voteArray.push(vote);
+  }
+
+  function numVotes() public view returns (uint256) {
+    return voteArray.length;
+  }
 }
