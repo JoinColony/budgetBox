@@ -14,5 +14,8 @@
   "bugs": {
     "url": "https://github.com/JoinColony/budgetBox/issues"
   },
-  "homepage": "https://github.com/JoinColony/budgetBox#readme"
+  "homepage": "https://github.com/JoinColony/budgetBox#readme",
+  "dependencies": {
+    "truffle": "^4.1.14"
+  }
 }
