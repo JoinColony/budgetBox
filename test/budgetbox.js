@@ -58,4 +58,17 @@ contract('BudgetBox', function(accounts) {
     assert(v[0].toNumber() > v[1].toNumber());
     assert(v[1].toNumber() > v[2].toNumber());
   });
+
+  it("should run everything and check gas costs", async () => {
+    const gasCosts = [];
+    let tx;
+
+    tx = await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
+    gasCosts.push(tx.receipt.gasUsed);
+
+    tx = await budgetBox.runAll(5);
+    gasCosts.push(tx.receipt.gasUsed);
+
+    console.log(gasCosts);
+  });
 });

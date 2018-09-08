@@ -22,6 +22,7 @@ pragma experimental "v0.5.0";
 contract BudgetBox {
   uint256 constant K = 5;
   uint256[] voteArray;
+  uint256[] budget;
 
   //////////
   // Public functions
@@ -89,6 +90,18 @@ contract BudgetBox {
     }
 
     return v0;
+  }
+
+  function runAll(uint256 nIter) public {
+    uint256[K][K] memory bbox;
+    uint256[K] memory v;
+
+    bbox = createBBox();
+    bbox = addDiagonal(bbox);
+    v = powerMethod(bbox, nIter);
+
+    budget.length = K;
+    for (uint k; k < K; k++) budget[k] = v[k];
   }
 
   //////////
