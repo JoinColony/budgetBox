@@ -53,8 +53,9 @@ contract('BudgetBox', function(accounts) {
     let bbox;
     bbox = await budgetBox.createBBox();
     bbox = await budgetBox.addDiagonal(bbox);
+    bbox = await budgetBox.normalize(bbox);
 
-    const v = await budgetBox.powerMethod(bbox, 5);
+    const v = await budgetBox.powerMethod(bbox);
     assert(v[0].toNumber() > v[1].toNumber());
     assert(v[1].toNumber() > v[2].toNumber());
   });
@@ -66,7 +67,7 @@ contract('BudgetBox', function(accounts) {
     tx = await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
     gasCosts.push(tx.receipt.gasUsed);
 
-    tx = await budgetBox.runAll(5);
+    tx = await budgetBox.runAll();
     gasCosts.push(tx.receipt.gasUsed);
 
     console.log(gasCosts);

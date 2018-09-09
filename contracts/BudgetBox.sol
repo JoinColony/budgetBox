@@ -20,6 +20,8 @@ pragma experimental "v0.5.0";
 
 
 contract BudgetBox {
+  uint256 constant PRECISION = 1000;
+  uint256 constant EPSILON = PRECISION / 100;
   uint256 constant K = 5;
   uint256[] voteArray;
   uint256[] budget;
@@ -67,7 +69,23 @@ contract BudgetBox {
     return bbox;
   }
 
-  function powerMethod(uint256[K][K] bbox, uint256 nIter) public pure returns (uint256[K]) {
+  function normalize(uint256[K][K] bbox) public pure returns(uint256[K][K]) {
+    uint i;
+    uint j;
+    uint s;
+    for (j = 0; j < K; j++) {
+      s = 0;
+      for (i = 0; i < K; i++) s += bbox[i][j];
+      if (s > 0) {
+        for (i = 0; i < K; i++) {
+          bbox[i][j] = (bbox[i][j] * PRECISION) / s;
+        }
+      }
+    }
+    return bbox;
+  }
+
+  function powerMethod(uint256[K][K] bbox) public pure returns (uint256[K]) {
     uint256[K] memory v0;
     uint256[K] memory vn;
 
@@ -76,29 +94,32 @@ contract BudgetBox {
     uint k;
 
     // Initialize v
-    for (k = 0; k < K; k++) v0[k] = 1;
+    for (k = 0; k < K; k++) v0[k] = PRECISION / K;
 
     // Run algorithm!
-    for (; nIter > 0; nIter--) {
+    for (;;) {
       for (i = 0; i < K; i++) {
         vn[i] = 0;
         for (j = 0; j < K; j++) {
           vn[i] += bbox[i][j] * v0[j];
         }
       }
+      for (k = 0; k < K; k++) vn[k] /= PRECISION;
+      if (difference(v0, vn) < EPSILON) {
+        return vn;
+      }
       for (k = 0; k < K; k++) v0[k] = vn[k];
     }
-
-    return v0;
   }
 
-  function runAll(uint256 nIter) public {
+  function runAll() public {
     uint256[K][K] memory bbox;
     uint256[K] memory v;
 
     bbox = createBBox();
     bbox = addDiagonal(bbox);
-    v = powerMethod(bbox, nIter);
+    bbox = normalize(bbox);
+    v = powerMethod(bbox);
 
     budget.length = K;
     for (uint k; k < K; k++) budget[k] = v[k];
@@ -118,5 +139,13 @@ contract BudgetBox {
   function getPos(uint a, uint b) internal pure returns (uint) {
     require(a < b, "wrong-argument-order");
     return ((b * (b - 1)) / 2) + a;
+  }
+
+  function difference(uint256[K] v0, uint256[K] vn) internal pure returns (uint) {
+    uint diff;
+    for (uint k; k < K; k++) {
+      diff += (v0[k] - vn[k]) ** 2;
+    }
+    return diff;
   }
 }
