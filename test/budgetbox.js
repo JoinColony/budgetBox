@@ -1,7 +1,5 @@
 const BudgetBox = artifacts.require("./BudgetBox.sol");
 
-const K = 5;
-
 function createVote(winner, loser) {
     const [a, b, winbit] = (winner < loser) ? [winner, loser, 0] : [loser, winner, 1];
     const pos = ((b * (b - 1)) / 2) + a;
@@ -60,16 +58,9 @@ contract('BudgetBox', function(accounts) {
     assert(v[1].toNumber() > v[2].toNumber());
   });
 
-  it("should run everything and check gas costs", async () => {
-    const gasCosts = [];
-    let tx;
-
-    tx = await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
-    gasCosts.push(tx.receipt.gasUsed);
-
-    tx = await budgetBox.runAll();
-    gasCosts.push(tx.receipt.gasUsed);
-
-    console.log(gasCosts);
+  it("should run everything", async () => {
+    await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
+    await budgetBox.runAll();
   });
+
 });

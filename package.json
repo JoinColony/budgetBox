@@ -15,7 +15,8 @@
     "url": "https://github.com/JoinColony/budgetBox/issues"
   },
   "homepage": "https://github.com/JoinColony/budgetBox#readme",
-  "dependencies": {
-    "truffle": "^4.1.14"
+  "devDependencies": {
+    "truffle": "^4.1.14",
+    "eth-gas-reporter": "^0.1.12"
   }
 }
