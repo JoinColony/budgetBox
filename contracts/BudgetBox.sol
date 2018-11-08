@@ -23,34 +23,38 @@ contract BudgetBox {
   uint256 constant PRECISION = 1000;
   uint256 constant EPSILON = PRECISION / 100;
   uint256 constant K = 5;
+  uint256 constant MAX_VOTES = 100;
+
+  uint256[K][K] bboxStorage;
+  uint256[K] budget;
   uint256[] voteArray;
-  uint256[] budget;
+  uint256 numLoadedVotes;
 
   //////////
   // Public functions
 
   function addVote(uint256 vote) public {
     voteArray.push(vote);
+    if (voteArray.length >= MAX_VOTES) loadVotesToBBoxStorage();
   }
 
   function numVotes() public view returns (uint256) {
-    return voteArray.length;
+    return numLoadedVotes + voteArray.length;
+  }
+
+  function getBudget() public view returns (uint256[K]) {
+    return budget;
   }
 
   function createBBox() public view returns (uint256[K][K]) {
-    uint256[K][K] memory bbox;
-    uint a;
-    uint b;
-    uint pos;
+    uint256[K][K] memory bbox = createBBoxFromVotes();
+    uint i;
+    uint j;
 
-    for (uint voter; voter < voteArray.length; voter++) {
-      for (b = 0; b < K; b++) {
-        for (a = 0; a < b; a++) {
-          pos = getPos(a, b);
-          if (voteExists(voter, pos)) {
-            // Note: true indicates that b is preferred
-            getVote(voter, pos) ? bbox[b][a] += 1 : bbox[a][b] += 1;
-          }
+    if (numLoadedVotes > 0) {
+      for (i = 0; i < K; i++) {
+        for (j = 0; j < K; j++) {
+          bbox[i][j] += bboxStorage[i][j];
         }
       }
     }
@@ -61,6 +65,7 @@ contract BudgetBox {
   function addDiagonal(uint256[K][K] bbox) public pure returns(uint256[K][K]) {
     uint i;
     uint j;
+
     for (i = 0; i < K; i++) {
       for (j = 0; j < K; j++) {
         if (i != j) bbox[i][i] += bbox[i][j];
@@ -73,6 +78,7 @@ contract BudgetBox {
     uint i;
     uint j;
     uint s;
+
     for (j = 0; j < K; j++) {
       s = 0;
       for (i = 0; i < K; i++) s += bbox[i][j];
@@ -121,12 +127,48 @@ contract BudgetBox {
     bbox = normalize(bbox);
     v = powerMethod(bbox);
 
-    budget.length = K;
     for (uint k; k < K; k++) budget[k] = v[k];
   }
 
   //////////
   // Internal functions
+
+  function createBBoxFromVotes() public view returns (uint256[K][K]) {
+    uint256[K][K] memory bbox;
+    uint a;
+    uint b;
+    uint pos;
+
+    for (uint voter; voter < voteArray.length; voter++) {
+      for (b = 0; b < K; b++) {
+        for (a = 0; a < b; a++) {
+          pos = getPos(a, b);
+          if (voteExists(voter, pos)) {
+            // Note: true indicates that b is preferred
+            getVote(voter, pos) ? bbox[b][a] += 1 : bbox[a][b] += 1;
+          }
+        }
+      }
+    }
+
+    return bbox;
+  }
+
+  function loadVotesToBBoxStorage() internal {
+    uint256[K][K] memory bbox = createBBoxFromVotes();
+
+    uint i;
+    uint j;
+
+    for (i = 0; i < K; i++) {
+      for (j = 0; j < K; j++) {
+        bboxStorage[i][j] += bbox[i][j];
+      }
+    }
+
+    numLoadedVotes += voteArray.length;
+    delete voteArray;
+  }
 
   function voteExists(uint vote, uint pos) internal view returns (bool) {
     return voteArray[vote] & (2 << pos * 2) > 0;

@@ -47,6 +47,24 @@ contract('BudgetBox', function(accounts) {
     it("should run everything at once", async () => {
       await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
       await budgetBox.runAll();
+      const v = await budgetBox.getBudget();
+      assert(v[0].toNumber() > v[1].toNumber());
+      assert(v[1].toNumber() > v[2].toNumber());
+    });
+
+    it("should work with many votes", async () => {
+      const n = 150;
+      for (var i = 0; i < n; i++) {
+        await budgetBox.addVote(createVote(0, 1) | createVote(1, 2));
+      }
+
+      const numVotes = await budgetBox.numVotes();
+      assert.equal(numVotes.toNumber(), n);
+
+      await budgetBox.runAll();
+      const v = await budgetBox.getBudget();
+      assert(v[0].toNumber() > v[1].toNumber());
+      assert(v[1].toNumber() > v[2].toNumber());
     });
   });
 
@@ -54,8 +72,8 @@ contract('BudgetBox', function(accounts) {
     let tx;
     let gasCost;
 
-    [10, 50, 100, 150, 200].forEach(async (n) => {
-      it(`should load ${n} votes`, async () => {
+    [10, 50, 100, 150, 200, 250, 300, 500, 1000].forEach(async (n) => {
+      it(`should load and process ${n} votes`, async () => {
         gasCost = 0;
 
         for (var i = 0; i < n; i++) {
@@ -63,16 +81,8 @@ contract('BudgetBox', function(accounts) {
           gasCost += tx.receipt.gasUsed;
         }
 
-        console.log(gasCost);
-      });
-
-      it(`should load and process ${n} votes`, async () => {
-        for (var i = 0; i < n; i++) {
-          await budgetBox.addVote(createRandomVotes().toString());
-        }
-
         tx = await budgetBox.runAll();
-        console.log(tx.receipt.gasUsed);
+        console.log([gasCost, tx.receipt.gasUsed, gasCost + tx.receipt.gasUsed]);
       });
     });
   });
