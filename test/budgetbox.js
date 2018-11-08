@@ -51,18 +51,28 @@ contract('BudgetBox', function(accounts) {
   });
 
   describe("gas costs for various degrees of scale", async () => {
+    let tx;
+    let gasCost;
+
     [10, 50, 100, 150, 200].forEach(async (n) => {
       it(`should load ${n} votes`, async () => {
+        gasCost = 0;
+
         for (var i = 0; i < n; i++) {
-          await budgetBox.addVote(createRandomVotes().toString());
+          tx = await budgetBox.addVote(createRandomVotes().toString());
+          gasCost += tx.receipt.gasUsed;
         }
+
+        console.log(gasCost);
       });
 
       it(`should load and process ${n} votes`, async () => {
         for (var i = 0; i < n; i++) {
           await budgetBox.addVote(createRandomVotes().toString());
         }
-        await budgetBox.runAll();
+
+        tx = await budgetBox.runAll();
+        console.log(tx.receipt.gasUsed);
       });
     });
   });
