@@ -20,7 +20,7 @@ module.exports = {
       gasPrice: 5,
       onlyCalledMethods: true,
       noColors: true,
-      outputFile: "gas.txt"
+      outputFile: "gas/reporter.txt"
     },
     slow: 1000
   }

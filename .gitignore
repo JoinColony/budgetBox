@@ -1,2 +1,3 @@
 node_modules
-gas.txt
+.ipynb_checkpoints
+gas/*.tsv

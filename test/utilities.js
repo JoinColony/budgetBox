@@ -15,12 +15,16 @@ function random() {
 }
 
 function createRandomVotes() {
-  const max16 = 2 ** 16 - 1
-  const maxVote = new BN(max16 * random());
+  const max16 = 2 ** 16 - 1;
+  const maxVote = new BN(Math.floor(max16 * random()));
   for (var i = 0; i < 15; i++) {
-    maxVote.ishln(16).iaddn(max16 * random());
+    maxVote.ishln(16).iaddn(Math.floor(max16 * random()));
   }
   return maxVote;
+}
+
+function createTransitiveVotes() {
+  return new BN(0).notn(256);
 }
 
 function sumMatrix(matrix) {
@@ -40,6 +44,7 @@ function printRow(row) {
 module.exports = {
   createVote,
   createRandomVotes,
+  createTransitiveVotes,
   sumMatrix,
   printMatrix,
   printRow,
